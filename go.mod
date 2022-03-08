@@ -1,4 +1,4 @@
-module github.com/hyun2/job-scrapper
+module github.com/hyun2/jobScrapper
 
 go 1.17
 
