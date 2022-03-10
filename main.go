@@ -1,12 +1,15 @@
 package main
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 )
 
 var baseURL string = "https://www.jumpit.co.kr/api/positions?sort=relation&keyword=%EB%B8%94%EB%A1%9D%EC%B2%B4%EC%9D%B8"
@@ -55,8 +58,33 @@ func main() {
 	for i := 1; i <= pages; i++ {
 		jobs = append(jobs, getPage(i)...)
 	}
-	fmt.Println(PrettyPrint(jobs))
-	fmt.Println(len(jobs))
+	writeJobs(jobs)
+	// fmt.Println(PrettyPrint(jobs))
+	// fmt.Println(len(jobs))
+}
+
+func writeJobs(jobs []Position) {
+	// "id", "jobCategory": "안드로이드 개발자", "title": "Android 앱 개발", "companyName": "(주)제나", "locations": [ "서울" ],
+	// id를 이용해서 상세페이지 링크 만들기: https://www.jumpit.co.kr/position/{id}
+
+	file, err := os.Create("blockchain-jobs.csv")
+	checkErr(err)
+	defer file.Close()
+
+	w := csv.NewWriter(file)
+	defer w.Flush()
+
+	headers := []string{"Link", "JobCategory", "Title", "CompanyName", "Locations"}
+
+	wErr := w.Write(headers)
+	checkErr(wErr)
+
+	for _, job := range jobs {
+		baseURL := "https://www.jumpit.co.kr/position/"
+		jobRecord := []string{baseURL + strconv.Itoa(job.ID), job.JobCategory, job.Title, job.CompanyName, strings.Join(job.Locations, ", ")}
+		wErr = w.Write(jobRecord)
+		checkErr(wErr)
+	}
 }
 
 func getPage(page int) []Position {
