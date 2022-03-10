@@ -10,6 +10,7 @@ import (
 )
 
 var baseURL string = "https://www.jumpit.co.kr/api/positions?sort=relation&keyword=%EB%B8%94%EB%A1%9D%EC%B2%B4%EC%9D%B8"
+var resultsPerPage int = 16
 
 type JumpitResult struct {
 	Message string `json:"message"`
@@ -47,12 +48,29 @@ func main() {
 
 	for i := 1; i <= pages; i++ {
 		getPage(i)
+		break
 	}
 }
 
 func getPage(page int) {
 	pageURL := baseURL + "&page=" + strconv.Itoa(page)
-	fmt.Println(pageURL)
+	// fmt.Println(pageURL)
+
+	res, err := http.Get(pageURL)
+	checkErr(err)
+
+	defer res.Body.Close()
+	checkHttpResponse(res)
+
+	body, _ := ioutil.ReadAll(res.Body) // response body is []byte
+
+	var pageResult JumpitResult
+	if err := json.Unmarshal(body, &pageResult); err != nil { // Parse []byte to go struct pointer
+		fmt.Println("Can not unmarshal JSON")
+	}
+	// fmt.Println(pageResult)
+	fmt.Println(PrettyPrint(pageResult))
+
 }
 
 func getPages() int {
@@ -73,10 +91,10 @@ func getPages() int {
 	// fmt.Println(PrettyPrint(result))
 	// fmt.Println(result.Result.TotalCount)
 
-	if result.Result.TotalCount%16 == 0 {
-		pages = result.Result.TotalCount / 16
+	if result.Result.TotalCount%resultsPerPage == 0 {
+		pages = result.Result.TotalCount / resultsPerPage
 	} else {
-		pages = (result.Result.TotalCount / 16) + 1
+		pages = (result.Result.TotalCount / resultsPerPage) + 1
 	}
 
 	return pages
