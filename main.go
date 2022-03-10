@@ -16,43 +16,50 @@ type JumpitResult struct {
 	Message string `json:"message"`
 	Status  int    `json:"status"`
 	Code    string `json:"code"`
-	Result  struct {
-		TotalCount int `json:"totalCount"`
-		Page       int `json:"page"`
-		Positions  []struct {
-			ID               int      `json:"id"`
-			JobCategory      string   `json:"jobCategory"`
-			Logo             string   `json:"logo"`
-			ImagePath        string   `json:"imagePath"`
-			Title            string   `json:"title"`
-			CompanyName      string   `json:"companyName"`
-			TechStacks       []string `json:"techStacks"`
-			ScrapCount       int      `json:"scrapCount"`
-			ViewCount        int      `json:"viewCount"`
-			Newcomer         bool     `json:"newcomer"`
-			MinCareer        int      `json:"minCareer"`
-			MaxCareer        int      `json:"maxCareer"`
-			Locations        []string `json:"locations"`
-			AlwaysOpen       bool     `json:"alwaysOpen"`
-			ClosedAt         string   `json:"closedAt"`
-			CompanyProfileID int      `json:"companyProfileId"`
-			Celebration      int      `json:"celebration"`
-			Scraped          bool     `json:"scraped"`
-		} `json:"positions"`
-	} `json:"result"`
+	Result  PositionResult
+}
+
+type PositionResult struct {
+	TotalCount int        `json:"totalCount"`
+	Page       int        `json:"page"`
+	Positions  []Position `json:"positions"`
+}
+
+type Position struct {
+	ID               int      `json:"id"`
+	JobCategory      string   `json:"jobCategory"`
+	Logo             string   `json:"logo"`
+	ImagePath        string   `json:"imagePath"`
+	Title            string   `json:"title"`
+	CompanyName      string   `json:"companyName"`
+	TechStacks       []string `json:"techStacks"`
+	ScrapCount       int      `json:"scrapCount"`
+	ViewCount        int      `json:"viewCount"`
+	Newcomer         bool     `json:"newcomer"`
+	MinCareer        int      `json:"minCareer"`
+	MaxCareer        int      `json:"maxCareer"`
+	Locations        []string `json:"locations"`
+	AlwaysOpen       bool     `json:"alwaysOpen"`
+	ClosedAt         string   `json:"closedAt"`
+	CompanyProfileID int      `json:"companyProfileId"`
+	Celebration      int      `json:"celebration"`
+	Scraped          bool     `json:"scraped"`
 }
 
 func main() {
+	jobs := []Position{}
+
 	pages := getPages()
-	fmt.Println(pages)
+	// fmt.Println(pages)
 
 	for i := 1; i <= pages; i++ {
-		getPage(i)
-		break
+		jobs = append(jobs, getPage(i)...)
 	}
+	fmt.Println(PrettyPrint(jobs))
+	fmt.Println(len(jobs))
 }
 
-func getPage(page int) {
+func getPage(page int) []Position {
 	pageURL := baseURL + "&page=" + strconv.Itoa(page)
 	// fmt.Println(pageURL)
 
@@ -68,9 +75,9 @@ func getPage(page int) {
 	if err := json.Unmarshal(body, &pageResult); err != nil { // Parse []byte to go struct pointer
 		fmt.Println("Can not unmarshal JSON")
 	}
-	// fmt.Println(pageResult)
-	fmt.Println(PrettyPrint(pageResult))
+	// fmt.Println(PrettyPrint(pageResult.Result.Positions))
 
+	return pageResult.Result.Positions
 }
 
 func getPages() int {
