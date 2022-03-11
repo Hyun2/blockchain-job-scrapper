@@ -50,17 +50,28 @@ type Position struct {
 }
 
 func main() {
+	c := make(chan []Position)
+
 	jobs := []Position{}
 
 	pages := getPages()
 	// fmt.Println(pages)
 
+	// for i := 1; i <= pages; i++ {
+	// 	jobs = append(jobs, getPage(i)...)
+	// }
 	for i := 1; i <= pages; i++ {
-		jobs = append(jobs, getPage(i)...)
+		go getPage(i, c)
 	}
+
+	for i := 1; i <= pages; i++ {
+		pageJobs := <-c
+		jobs = append(jobs, pageJobs...)
+	}
+
 	writeJobs(jobs)
 	// fmt.Println(PrettyPrint(jobs))
-	// fmt.Println(len(jobs))
+	fmt.Println(len(jobs))
 }
 
 func writeJobs(jobs []Position) {
@@ -87,7 +98,7 @@ func writeJobs(jobs []Position) {
 	}
 }
 
-func getPage(page int) []Position {
+func getPage(page int, c chan<- []Position) {
 	pageURL := baseURL + "&page=" + strconv.Itoa(page)
 	// fmt.Println(pageURL)
 
@@ -105,7 +116,7 @@ func getPage(page int) []Position {
 	}
 	// fmt.Println(PrettyPrint(pageResult.Result.Positions))
 
-	return pageResult.Result.Positions
+	c <- pageResult.Result.Positions
 }
 
 func getPages() int {
