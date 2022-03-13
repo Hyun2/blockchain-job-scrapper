@@ -79,7 +79,7 @@ func writeJobs(jobs []Position) {
 	// "id", "jobCategory": "안드로이드 개발자", "title": "Android 앱 개발", "companyName": "(주)제나", "locations": [ "서울" ],
 	// id를 이용해서 상세페이지 링크 만들기: https://www.jumpit.co.kr/position/{id}
 
-	file, err := os.Create("blockchain-jobs.csv")
+	file, err := os.Create("jobs.csv")
 	checkErr(err)
 	defer file.Close()
 

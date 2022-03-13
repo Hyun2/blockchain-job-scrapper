@@ -1,19 +1,25 @@
 package main
 
 import (
-	"fmt"
+	"os"
 
+	"github.com/hyun2/jobScrapper/scrapper"
 	"github.com/labstack/echo/v4"
 )
+
+const fileName = "jobs.csv"
 
 func handleHome(c echo.Context) error {
 	return c.File("Home.html")
 }
 
 func handleScrape(c echo.Context) error {
-	fmt.Println(c.FormValue("term"))
+	defer os.Remove(fileName)
+	// fmt.Println(c.FormValue("term"))
+	term := c.FormValue("term")
+	scrapper.Scrape(term)
 
-	return nil
+	return c.Attachment(fileName, fileName)
 }
 
 func main() {
